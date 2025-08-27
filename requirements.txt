@@ -3,3 +3,4 @@ pandas==2.3.2
 numpy==2.0.2
 datetime==5.5
 logging==0.4.9.6
+sqlalchemy==2.0.43
