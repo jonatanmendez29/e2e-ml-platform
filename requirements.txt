@@ -3,4 +3,5 @@ pandas==2.3.2
 numpy==2.0.2
 datetime==5.5
 logging==0.4.9.6
-sqlalchemy==2.0.43
+sqlalchemy==1.4.54
+apache-airflow==3.0.4
