@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: data_werehouse
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: Admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow:
+    image: apache/airflow:2.5.1
+    environment:
+      AIRFLOW_CORE_EXECUTOR: LocalExecutor
+      AIRFLOW_CORE_SQL_ALCHEMY_CONN: postgresql+psycopg2://admin@postgres:5432/airflow
+    volumes:
+      - ../dags:/opt/airflow/dags
+      - ../scripts:/opt/airflow/scripts
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create --username admin --password Admin123 --firstname Admin --lastname User --role Admin --email jonatanmendez29@gmail.com &&
+        airflow scheduler &
+        airflow webserver
+      "
+
+volumes:
+  postgres_data:
