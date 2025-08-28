@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
-from airflow import DAG
+from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.standard.operators.bash import BashOperator
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2023, 1, 1),
+    'start_date': datetime(2025, 8, 28),
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
@@ -14,10 +14,10 @@ default_args = {
 }
 
 dag = DAG(
-    'ecommerce_data_pipeline',
+    dag_id='ingest_data_pipeline',
     default_args=default_args,
     description='An end-to-end ecommerce data pipeline',
-    schedule_interval=timedelta(days=1),
+    schedule="@once",
     catchup=False,
 )
 
@@ -51,3 +51,4 @@ load_to_postgres = PythonOperator(
 
 # Set task dependencies
 create_data_dir >> generate_data >> data_quality_check >> load_to_postgres
+#generate_data >> data_quality_check >> load_to_postgres
