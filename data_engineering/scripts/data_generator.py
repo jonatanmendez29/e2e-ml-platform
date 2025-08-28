@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import logging
+import pathlib
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,6 +69,9 @@ def main():
 
     logger.info("Generating sales data...")
     sales_df = generate_sales(users_df, products_df, 5000)
+
+    #Ensure directory exists
+    pathlib.Path('/opt/airflow/data').mkdir(parents=True, exist_ok=True)
 
     # Save to CSV
     users_df.to_csv('/opt/airflow/data/users.csv', index=False)

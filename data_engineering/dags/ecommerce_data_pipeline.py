@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+
+import airflow
 from airflow.sdk import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.standard.operators.bash import BashOperator
@@ -6,7 +8,7 @@ from airflow.providers.standard.operators.bash import BashOperator
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2025, 8, 28),
+    'start_date': datetime(2025, 1, 1),
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
@@ -17,15 +19,8 @@ dag = DAG(
     dag_id='ingest_data_pipeline',
     default_args=default_args,
     description='An end-to-end ecommerce data pipeline',
-    schedule="@once",
+    schedule=None,
     catchup=False,
-)
-
-# Create directory for data
-create_data_dir = BashOperator(
-    task_id='create_data_dir',
-    bash_command='mkdir -p /opt/airflow/data',
-    dag=dag,
 )
 
 # Generate data
@@ -50,5 +45,4 @@ load_to_postgres = PythonOperator(
 )
 
 # Set task dependencies
-create_data_dir >> generate_data >> data_quality_check >> load_to_postgres
-#generate_data >> data_quality_check >> load_to_postgres
+generate_data >> data_quality_check >> load_to_postgres
