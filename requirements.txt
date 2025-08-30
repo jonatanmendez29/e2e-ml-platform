@@ -4,4 +4,4 @@ numpy==2.0.2
 datetime==5.5
 logging==0.4.9.6
 sqlalchemy==1.4.54
-apache-airflow==3.0.4
+apache-airflow==3.0.6
