@@ -1,3 +1,4 @@
+mlflow-skinny
 faker==37.6.0
 pandas==2.3.2
 numpy==2.0.2
@@ -10,3 +11,5 @@ plotly==6.3.0
 psycopg2-binary==2.9.5
 python-dotenv==1.1.1
 scikit-learn==1.6.1
+mlflow==3.1.4
+mlflow-skinny==3.1.4
