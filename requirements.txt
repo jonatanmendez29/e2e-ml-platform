@@ -1,4 +1,3 @@
-mlflow-skinny
 faker==37.6.0
 pandas==2.3.2
 numpy==2.0.2
