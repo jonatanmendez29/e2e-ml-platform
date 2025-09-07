@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  causal-analysis:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work/notebooks
+      - ./scripts:/home/jovyan/work/scripts
+      - ./data:/home/jovyan/work/data
+      - ./results:/home/jovyan/work/results
+    environment:
+      - JUPYTER_TOKEN=secret

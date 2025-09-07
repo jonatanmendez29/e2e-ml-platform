@@ -1,0 +1,11 @@
+pandas==2.3.2
+numpy==2.0.2
+scikit-learn==1.6.1
+Faker==37.6.0
+matplotlib==3.9.4
+seaborn==0.13.2
+statsmodels==0.14.5
+dowhy==0.13
+econml==0.16.0
+jupyter==1.1.1
+notebook==7.4.5
