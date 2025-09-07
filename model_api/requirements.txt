@@ -1,0 +1,13 @@
+fastapi==0.116.1
+pydantic==2.11.7
+uvicorn==0.35.0
+mlflow==3.1.4
+mlflow-skinny==3.1.4
+scikit-surprise==1.1.4
+pandas==2.3.2
+numpy==2.0.2
+sqlalchemy==1.4.54
+psycopg2-binary==2.9.5
+python-dotenv==1.1.1
+python-multipart==0.0.20
+pytest==8.4.2

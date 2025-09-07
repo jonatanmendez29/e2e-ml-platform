@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  model-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_NAME=airflow
+      - DB_USER=airflow
+      - DB_PASSWORD=airflow
+      - DB_PORT=5432
+      - MLFLOW_TRACKING_URI=http://host.docker.internal:5000
+    depends_on:
+      - postgres
+      - mlflow
+    networks:
+      - api-network
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - api-network
+
+  mlflow:
+    image: mlflow:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://localhost:5000
+    volumes:
+      - mlflow_data:/mlflow
+    networks:
+      - api-network
+
+volumes:
+  postgres_data:
+  mlflow_data:
+
+networks:
+  api-network:
+    driver: bridge

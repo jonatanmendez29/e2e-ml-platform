@@ -13,3 +13,9 @@ scikit-learn==1.6.1
 mlflow==3.1.4
 mlflow-skinny==3.1.4
 scikit-surprise==1.1.4
+fastapi==0.116.1
+pydantic==2.11.7
+uvicorn==0.35.0
+python-multipart==0.0.20
+python-dotenv==1.1.1
+pytest==8.4.2
