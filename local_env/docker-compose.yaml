@@ -1,47 +1,3 @@
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-#
-
-# Basic Airflow cluster configuration for CeleryExecutor with Redis and PostgreSQL.
-#
-# WARNING: This configuration is for local development. Do not use it in a production deployment.
-#
-# This configuration supports basic configuration using environment variables or an .env file
-# The following variables are supported:
-#
-# AIRFLOW_IMAGE_NAME           - Docker image name used to run Airflow.
-#                                Default: apache/airflow:3.0.6
-# AIRFLOW_UID                  - User ID in Airflow containers
-#                                Default: 50000
-# AIRFLOW_PROJ_DIR             - Base path to which all the files will be volumed.
-#                                Default: .
-# Those configurations are useful mostly in case of standalone testing/running Airflow in test/try-out mode
-#
-# _AIRFLOW_WWW_USER_USERNAME   - Username for the administrator account (if requested).
-#                                Default: airflow
-# _AIRFLOW_WWW_USER_PASSWORD   - Password for the administrator account (if requested).
-#                                Default: airflow
-# _PIP_ADDITIONAL_REQUIREMENTS - Additional PIP requirements to add when starting all containers.
-#                                Use this option ONLY for quick checks. Installing requirements at container
-#                                startup is done EVERY TIME the service is started.
-#                                A better way is to build a custom image or extend the official image
-#                                as described in https://airflow.apache.org/docs/docker-stack/build.html.
-#                                Default: ''
-#
 # Feel free to modify this file to suit your needs.
 ---
 x-airflow-common:
@@ -55,8 +11,8 @@ x-airflow-common:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
@@ -78,6 +34,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/scripts
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -90,13 +47,16 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_USER: data_warehouse
+      POSTGRES_PASSWORD: admin_ecomm
+      POSTGRES_DB: admin_ecomm
     ports:
       - "5432:5432"
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    networks:
+      - ecomm-network
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
@@ -110,6 +70,8 @@ services:
     image: redis:7.2-bookworm
     expose:
       - 6379
+    networks:
+      - ecomm-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -130,6 +92,8 @@ services:
       retries: 5
       start_period: 30s
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -138,6 +102,8 @@ services:
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
+    networks:
+      - ecomm-network
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
       interval: 30s
@@ -160,6 +126,8 @@ services:
       retries: 5
       start_period: 30s
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -168,6 +136,8 @@ services:
   airflow-worker:
     <<: *airflow-common
     command: celery worker
+    networks:
+      - ecomm-network
     healthcheck:
       # yamllint disable rule:line-length
       test: ["CMD-SHELL", 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"']
@@ -191,6 +161,8 @@ services:
   airflow-triggerer:
     <<: *airflow-common
     command: triggerer
+    networks:
+      - ecomm-network
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type TriggererJob --hostname "$${HOSTNAME}"']
       interval: 30s
@@ -286,12 +258,14 @@ services:
         ls -la /opt/airflow/{logs,dags,plugins,config}
 
     # yamllint enable rule:line-length
+    networks:
+      - ecomm-network
     environment:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-admin_ecomm}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-admin_ecomm}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
 
@@ -299,6 +273,8 @@ services:
     <<: *airflow-common
     profiles:
       - debug
+    networks:
+      - ecomm-network
     environment:
       <<: *airflow-common-env
       CONNECTION_CHECK_MAX_COUNT: "0"
@@ -316,6 +292,8 @@ services:
   flower:
     <<: *airflow-common
     command: celery flower
+    networks:
+      - ecomm-network
     profiles:
       - flower
     ports:
@@ -332,18 +310,67 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  analytics-dashboard:
-    build: ./dashboard
+  # Streamlit Dashboard
+  streamlit:
+    build: ./streamlit
     ports:
       - "8501:8501"
     environment:
-      - DB_HOST=host.docker.internal
-      - DB_NAME=airflow
-      - DB_USER=airflow
-      - DB_PASSWORD=airflow
-      - DB_PORT=5432
+      - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
     depends_on:
       - postgres
+    networks:
+      - ecomm-network
+  # MLflow
+  mlflow:
+    build: ./mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow
+    depends_on:
+      - postgres
+    networks:
+      - ecomm-network
+
+  # FastAPI
+  fastapi:
+    build: ./fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - postgres
+      - mlflow
+    networks:
+      - ecomm-network
+
+  # Causal Analysis (Jupyter)
+  jupyter:
+    build: ./causal-analysis
+    ports:
+      - "8888:8888"
+    environment:
+      - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - JUPYTER_TOKEN=secret
+    volumes:
+      - ./causal-analysis/notebooks:/home/jovyan/work/notebooks
+      - ./causal-analysis/scripts:/home/jovyan/work/scripts
+    depends_on:
+      - postgres
+    networks:
+      - ecomm-network
 
 volumes:
-  postgres-db-volume:
+  postgres_data:
+  mlflow_data:
+
+networks:
+  ecomm-network:
+    driver: bridge
