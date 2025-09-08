@@ -8,4 +8,8 @@ RUN apt-get update && apt-get install -y \
 
 USER airflow
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY scripts/ ./scripts/
+RUN pip install --no-cache-dir -r requirements.txt \
+    && mkdir -p data \
+    && cd scripts \
+    && python3 data_generator.py
