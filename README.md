@@ -1,4 +1,4 @@
-# Ent-to-End E-Commerce Analytics & ML Platfrom
+# End-to-End E-Commerce Analytics & ML Platfrom
 An E-Commerce Company's Data Ecosystem
 
 ## Project Overview
