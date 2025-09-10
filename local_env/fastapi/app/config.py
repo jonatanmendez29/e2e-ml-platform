@@ -13,9 +13,9 @@ class Settings:
     # Database settings
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
-    DB_NAME = os.getenv("DB_NAME", "airflow")
-    DB_USER = os.getenv("DB_USER", "airflow")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "airflow")
+    DB_NAME = os.getenv("DB_NAME", "data_warehouse")
+    DB_USER = os.getenv("DB_USER", "admin_ecomm")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "admin_ecomm")
     DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
     # MLflow settings
