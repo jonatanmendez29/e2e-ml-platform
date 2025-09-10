@@ -106,17 +106,17 @@ def create_tables(engine):
 
     users = Table('users', metadata,
                   Column('user_id', Integer, primary_key=True),
-                  Column('name', String),
-                  Column('email', String, unique=True),
+                  Column('name', String(100)),
+                  Column('email', String(100), unique=True),
                   Column('signup_date', Date),
-                  Column('country', String),
+                  Column('country', String(100)),
                   Column('age', Integer)
                   )
 
     products = Table('products', metadata,
                      Column('product_id', Integer, primary_key=True),
-                     Column('name', String),
-                     Column('category', String),
+                     Column('name', String(100)),
+                     Column('category', String(100)),
                      Column('price', Float)
                      )
 
@@ -134,7 +134,7 @@ def create_tables(engine):
 
 def schema_postgres():
     # Database connection
-    engine = create_engine('postgresql://airflow:airflow@postgres:5432/airflow')
+    engine = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
     # Create tables
     create_tables(engine)
 
@@ -163,7 +163,7 @@ def load_data(engine):
 
 def data_load_to_postgres():
     # Database connection
-    engine = create_engine('postgresql://airflow:airflow@postgres:5432/airflow')
+    engine = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
     # Load data
     load_data(engine)
 
@@ -190,7 +190,7 @@ def load_salesdata(engine):
 
 def sales_load_to_postgres():
     # Database connection
-    engine = create_engine('postgresql://airflow:airflow@postgres:5432/airflow')
+    engine = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
     # Load data
     load_salesdata(engine)
     logger.info("Data pipeline completed successfully!")

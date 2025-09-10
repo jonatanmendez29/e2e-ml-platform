@@ -20,9 +20,9 @@ st.set_page_config(
 def init_connection():
     return psycopg2.connect(
         host=os.getenv("DB_HOST", "localhost"),
-        database=os.getenv("DB_NAME", "airflow"),
-        user=os.getenv("DB_USER", "airflow"),
-        password=os.getenv("DB_PASSWORD", "airflow"),
+        database=os.getenv("DB_NAME", "data_warehouse"),
+        user=os.getenv("DB_USER", "admin_ecomm"),
+        password=os.getenv("DB_PASSWORD", "admin_ecomm"),
         port=os.getenv("DB_PORT", "5432")
     )
 

@@ -207,7 +207,7 @@ class RecommendationSystem:
 
 def main():
     # Initialize database connection
-    db_connection = create_engine('postgresql://airflow:airflow@localhost:5432/airflow')
+    db_connection = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
 
     # Initialize recommendation system
     rec_sys = RecommendationSystem(db_connection)

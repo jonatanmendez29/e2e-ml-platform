@@ -29,12 +29,12 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
-    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/scripts
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/data:/opt/airflow/data
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/config:/opt/airflow/config
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/airflow/scripts:/opt/airflow/scripts
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -47,9 +47,9 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: data_warehouse
+      POSTGRES_USER: admin_ecomm
       POSTGRES_PASSWORD: admin_ecomm
-      POSTGRES_DB: admin_ecomm
+      POSTGRES_DB: data_warehouse
     ports:
       - "5432:5432"
     volumes:
@@ -58,7 +58,7 @@ services:
     networks:
       - ecomm-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: ["CMD", "pg_isready", "-U", "data_warehouse"]
       interval: 10s
       retries: 5
       start_period: 5s
@@ -69,7 +69,7 @@ services:
     # https://redis.io/blog/redis-adopts-dual-source-available-licensing/
     image: redis:7.2-bookworm
     expose:
-      - 6379
+      - "6379:6379"
     networks:
       - ecomm-network
     healthcheck:
@@ -319,21 +319,23 @@ services:
       - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
     depends_on:
       - postgres
+      - airflow-apiserver
     networks:
       - ecomm-network
   # MLflow
   mlflow:
     build: ./mlflow
     ports:
-      - "5000:5000"
+      - "5050:5050"
     environment:
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_TRACKING_URI=http://mlflow:5050
       - MLFLOW_BACKEND_STORE_URI=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
       - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
       - mlflow_data:/mlflow
     depends_on:
       - postgres
+      - airflow-apiserver
     networks:
       - ecomm-network
 
@@ -351,24 +353,8 @@ services:
     networks:
       - ecomm-network
 
-  # Causal Analysis (Jupyter)
-  jupyter:
-    build: ./causal-analysis
-    ports:
-      - "8888:8888"
-    environment:
-      - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
-      - JUPYTER_TOKEN=secret
-    volumes:
-      - ./causal-analysis/notebooks:/home/jovyan/work/notebooks
-      - ./causal-analysis/scripts:/home/jovyan/work/scripts
-    depends_on:
-      - postgres
-    networks:
-      - ecomm-network
-
 volumes:
-  postgres_data:
+  postgres-db-volume:
   mlflow_data:
 
 networks:

@@ -19,7 +19,7 @@ class Settings:
     DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
     # MLflow settings
-    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5050")
 
     # Model names
     CHURN_MODEL_NAME = os.getenv("CHURN_MODEL_NAME", "churn_prediction_model")

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     # Initialize database connection
-    db_connection = create_engine('postgresql://airflow:airflow@localhost:5432/airflow')
+    db_connection = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
 
     # Initialize feature engineer
     feature_engineer = FeatureEngineer(db_connection)
