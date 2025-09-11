@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     cmake \
     gcc \
     build-essential \
+    iputils-ping \
+    net-tools \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 

@@ -55,10 +55,12 @@ services:
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d
+      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     networks:
       - ecomm-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "data_warehouse"]
+      test: ["CMD", "pg_isready", "-U", "admin_ecomm", "-d", "data_warehouse", "-p", "5432"]
       interval: 10s
       retries: 5
       start_period: 5s
@@ -316,7 +318,7 @@ services:
     ports:
       - "8501:8501"
     environment:
-      - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - DB_URL=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
     depends_on:
       - postgres
       - airflow-apiserver
@@ -329,7 +331,7 @@ services:
       - "5050:5050"
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5050
-      - MLFLOW_BACKEND_STORE_URI=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - MLFLOW_BACKEND_STORE_URI=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
       - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
       - mlflow_data:/mlflow
@@ -345,7 +347,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DB_URL=postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - DB_URL=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
       - MLFLOW_TRACKING_URI=http://mlflow:5000
     depends_on:
       - postgres

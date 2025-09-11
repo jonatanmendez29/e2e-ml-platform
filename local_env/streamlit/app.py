@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import psycopg2
 from datetime import datetime, timedelta
 import os
@@ -19,7 +17,7 @@ st.set_page_config(
 @st.cache_resource
 def init_connection():
     return psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
+        host=os.getenv("DB_HOST", "postgres"),
         database=os.getenv("DB_NAME", "data_warehouse"),
         user=os.getenv("DB_USER", "admin_ecomm"),
         password=os.getenv("DB_PASSWORD", "admin_ecomm"),
