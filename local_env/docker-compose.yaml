@@ -333,6 +333,7 @@ services:
       - MLFLOW_TRACKING_URI=http://mlflow:5050
       - MLFLOW_BACKEND_STORE_URI=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
       - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+      - MLFLOW_TRACKING_DISABLE_GIT=true
     volumes:
       - mlflow_data:/mlflow
     depends_on:
@@ -348,7 +349,7 @@ services:
       - "8000:8000"
     environment:
       - DB_URL=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_TRACKING_URI=http://mlflow:5050
     depends_on:
       - postgres
       - mlflow

@@ -15,4 +15,4 @@ COPY airflow/scripts/ ./scripts/
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
     && mkdir -p data \
-    && python3 scripts/data_generator.py
+    && python scripts/data_generator.py
