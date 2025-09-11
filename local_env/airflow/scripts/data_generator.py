@@ -9,13 +9,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def generate_users(n=1000):
-    fake = Faker()
+    fake = Faker(['es_MX', 'en_US', 'en_GB'])
     users = []
     for i in range(n):
         name=fake.name()
         email=fake.unique.email()
         signup_date=fake.date_between(start_date='-2y', end_date='today')
-        country=fake.country()
+        country=fake.current_country()
         age=np.random.randint(18, 80)
         users.append({
             "user_id": i + 1,
