@@ -7,9 +7,6 @@ import logging
 from sqlalchemy import create_engine
 from datetime import datetime
 
-# Add at the top
-from config import settings
-
 # Update MLflow tracking URI
 import mlflow
 
@@ -26,11 +23,11 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-mlflow.set_tracking_uri(settings.MLFLOW_TRACKING_URI)
+mlflow.set_tracking_uri("http://localhost:5050")
 
 # Update database connection
 def get_db_connection():
-    return create_engine(settings.DB_URL)
+    return create_engine("postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse")
 
 # MLflow model loading
 def load_model(model_name, stage="Production"):

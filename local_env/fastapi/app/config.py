@@ -11,7 +11,7 @@ class Settings:
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
     # Database settings
-    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_HOST = os.getenv("DB_HOST", "postgres")
     DB_PORT = os.getenv("DB_PORT", "5432")
     DB_NAME = os.getenv("DB_NAME", "data_warehouse")
     DB_USER = os.getenv("DB_USER", "admin_ecomm")
