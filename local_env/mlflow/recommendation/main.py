@@ -23,6 +23,7 @@ class RecommendationSystem:
 
     def load_data(self):
         """Load user-item interaction data and product features"""
+        logger.info(f"Connecting to database...{self.db_conn}")
         logger.info("Loading interaction data...")
 
         # Load interaction data
@@ -36,7 +37,6 @@ class RecommendationSystem:
         FROM sales
         GROUP BY user_id, product_id
         """
-
         interactions = pd.read_sql_query(interaction_query, self.db_conn)
 
         # Load product features for content-based filtering
@@ -48,7 +48,6 @@ class RecommendationSystem:
             price
         FROM products
         """
-
         products = pd.read_sql_query(product_query, self.db_conn)
 
         return interactions, products
@@ -107,8 +106,7 @@ class RecommendationSystem:
 
         for product_id in interacted_products:
             if product_id in self.product_features.index:
-                user_profile += self.ratings_matrix.loc[user_id, product_id] * self.product_features.loc[
-                    product_id].values
+                user_profile += self.ratings_matrix.loc[user_id, product_id] * self.product_features.loc[product_id].values.astype(np.float64)
 
         # Normalize the user profile
         if len(interacted_products) > 0:
@@ -210,12 +208,11 @@ class RecommendationSystem:
 def main():
     # Initialize database connection
     db_connection = psycopg2.connect(host=os.getenv("DB_HOST", "postgres"),
-        database=os.getenv("DB_NAME", "data_warehouse"),
-        user=os.getenv("DB_USER", "admin_ecomm"),
-        password=os.getenv("DB_PASSWORD", "admin_ecomm"),
-        port=os.getenv("DB_PORT", "5432")
+                                     database=os.getenv("DB_NAME", "data_warehouse"),
+                                     user=os.getenv("DB_USER", "admin_ecomm"),
+                                     password=os.getenv("DB_PASSWORD", "admin_ecomm"),
+                                     port=os.getenv("DB_PORT", "5432")
     )
-
     # Initialize recommendation system
     rec_sys = RecommendationSystem(db_connection)
 
@@ -247,7 +244,7 @@ def main():
 
         # Generate sample recommendations using different methods
         sample_user = utility_matrix.index[0]
-
+        logger.info(f"Content-based recommendations for user {sample_user}")
         # Content-based recommendations
         content_recs = rec_sys.generate_content_based_recommendations(sample_user)
         logger.info(f"Content-based recommendations for user {sample_user}: {content_recs}")

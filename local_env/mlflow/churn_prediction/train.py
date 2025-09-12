@@ -130,7 +130,7 @@ class ChurnModelTrainer:
             client.transition_model_version_stage(
                 name="churn_prediction_model",
                 version=mv.version,
-                stage="Production"
+                stage="production"
             )
         else:
             # Register the provided model
