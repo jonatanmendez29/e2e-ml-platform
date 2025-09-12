@@ -6,6 +6,8 @@ from sklearn.preprocessing import StandardScaler
 from surprise import Dataset, Reader, SVD
 from surprise.model_selection import cross_validate
 import logging
+import psycopg2
+import os
 from sqlalchemy import create_engine
 
 logging.basicConfig(level=logging.INFO)
@@ -207,7 +209,12 @@ class RecommendationSystem:
 
 def main():
     # Initialize database connection
-    db_connection = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
+    db_connection = psycopg2.connect(host=os.getenv("DB_HOST", "postgres"),
+        database=os.getenv("DB_NAME", "data_warehouse"),
+        user=os.getenv("DB_USER", "admin_ecomm"),
+        password=os.getenv("DB_PASSWORD", "admin_ecomm"),
+        port=os.getenv("DB_PORT", "5432")
+    )
 
     # Initialize recommendation system
     rec_sys = RecommendationSystem(db_connection)
@@ -223,6 +230,8 @@ def main():
     product_features = rec_sys.prepare_content_based_features(products)
     rec_sys.product_features = product_features
 
+    # Set the tracking URI to point to your MLFlow server
+    mlflow.set_tracking_uri("http://mlflow:5050")
     # Start MLflow experiment
     mlflow.set_experiment("Product_Recommendation_System")
 

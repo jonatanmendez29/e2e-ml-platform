@@ -14,6 +14,8 @@ class ChurnModelTrainer:
     def __init__(self, experiment_name="Customer_Churn_Prediction"):
         self.experiment_name = experiment_name
         mlflow.set_experiment(experiment_name)
+        # Set the tracking URI to point to your MLFlow server
+        mlflow.set_tracking_uri("http://mlflow:5050")
 
     def train_models(self, X_train, X_test, y_train, y_test, feature_names):
         """Train and compare multiple models"""

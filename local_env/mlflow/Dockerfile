@@ -19,4 +19,4 @@ COPY recommendation/ ./recommendation/
 
 EXPOSE 5050
 
-CMD ["sh", "-c", "python init_mlflow_db.py && mlflow server --host 0.0.0.0 --port 5050 --backend-store-uri postgresql://admin_ecomm:admin_ecomm@postgres:5432/mlflow_tracking --default-artifact-root /artifacts"]
+CMD ["sh", "-c", "python init_mlflow_db.py && mlflow server --host 0.0.0.0 --port 5050 --backend-store-uri postgresql://admin_ecomm:admin_ecomm@postgres:5432/mlflow_tracking --default-artifact-root /mlflow/artifacts"]

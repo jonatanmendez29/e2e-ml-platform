@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 import logging
 from sklearn.metrics import roc_auc_score
+import psycopg2
+import os
 
 from feature_engineering import FeatureEngineer
 from train import ChurnModelTrainer
@@ -11,7 +13,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     # Initialize database connection
-    db_connection = create_engine('postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse')
+    db_connection = psycopg2.connect(host=os.getenv("DB_HOST", "postgres"),
+        database=os.getenv("DB_NAME", "data_warehouse"),
+        user=os.getenv("DB_USER", "admin_ecomm"),
+        password=os.getenv("DB_PASSWORD", "admin_ecomm"),
+        port=os.getenv("DB_PORT", "5432")
+    )
 
     # Initialize feature engineer
     feature_engineer = FeatureEngineer(db_connection)

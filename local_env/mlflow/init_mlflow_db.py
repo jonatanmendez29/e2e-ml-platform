@@ -12,7 +12,7 @@ def check_db_connection():
         try:
             conn = psycopg2.connect(
                 host="postgres",
-                database="data_warehouse",
+                database="mlflow_tracking",
                 user="admin_ecomm",
                 password="admin_ecomm",
                 port="5432"
@@ -30,7 +30,7 @@ def init_mlflow_db():
     if check_db_connection():
         try:
             # Run MLFlow database upgrade
-            os.system("mlflow db upgrade postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse")
+            os.system("mlflow db upgrade postgresql://admin_ecomm:admin_ecomm@postgres:5432/mlflow_tracking")
             print("MLFlow database initialized successfully")
         except Exception as e:
             print(f"Error initializing MLFlow database: {e}")

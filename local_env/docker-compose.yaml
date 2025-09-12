@@ -333,7 +333,7 @@ services:
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5050
       - MLFLOW_BACKEND_STORE_URI=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/mlflow_tracking
-      - MLFLOW_ARTIFACT_ROOT=/artifacts
+      - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
       - MLFLOW_TRACKING_DISABLE_GIT=true
     volumes:
       - mlflow_data:/mlflow
