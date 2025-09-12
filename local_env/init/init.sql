@@ -36,8 +36,6 @@ CREATE TABLE IF NOT EXISTS sales (
     sale_date DATE
 );
 
--- Create MLflow tables (will be created automatically by MLflow)
--- Create Airflow tables (will be created automatically by Airflow)
 
 -- Create versioned tables for data lineage
 CREATE TABLE IF NOT EXISTS users_versions (
@@ -63,3 +61,14 @@ CREATE TABLE IF NOT EXISTS products_versions (
     valid_to TIMESTAMP,
     PRIMARY KEY (version_id, product_id)
 );
+
+-- Create MLflow tables (will be created automatically by MLflow)
+-- Create Airflow tables (will be created automatically by Airflow)
+
+-- Create separate databases for each service
+CREATE DATABASE airflow_metadata;
+CREATE DATABASE mlflow_tracking;
+
+-- Grant permissions to our user
+GRANT ALL PRIVILEGES ON DATABASE airflow_metadata TO admin_ecomm;
+GRANT ALL PRIVILEGES ON DATABASE mlflow_tracking TO admin_ecomm;

@@ -11,6 +11,7 @@ x-airflow-common:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/airflow_metadata
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
@@ -331,8 +332,8 @@ services:
       - "5050:5050"
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5050
-      - MLFLOW_BACKEND_STORE_URI=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
-      - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+      - MLFLOW_BACKEND_STORE_URI=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/mlflow_tracking
+      - MLFLOW_ARTIFACT_ROOT=/artifacts
       - MLFLOW_TRACKING_DISABLE_GIT=true
     volumes:
       - mlflow_data:/mlflow
