@@ -1,5 +1,5 @@
 # End-to-End E-Commerce Analytics & ML Platfrom
-## 🎯 Project Overview
+# 🎯 Project Overview
 Welcome to my comprehensive **E-Commerce Machine Learning Platform** - a full-stack data science project that demonstrates modern data engineering, machine learning, and cloud deployment practices. 
 This platform simulates a real-world e-commerce ecosystem, transforming raw data into actionable business intelligence through a complete ML pipeline.
 
@@ -267,3 +267,234 @@ Through this project, I've developed and demonstrated expertise in:
 This project represents my commitment to building complete, production-ready data solutions that solve real business problems. It's been an incredible journey through the entire data science stack, and I'm excited to apply these skills to new challenges!
 
 ***Explore the code, run the system locally, or deploy to AWS—everything you need is in the documentation below. Let's build the future of data-driven decision making together!*** 🚀
+
+# Local Development Setup
+Follow these step-by-step instructions to set up and run the complete E-Commerce ML Platform on your local machine.
+
+## 🛠️ Prerequisites
+Before you begin, ensure you have the following installed:
+- Docker (version 20.10+)
+- Docker Compose (version 2.0+)
+- Git (for cloning the repository)
+- At least 8GB RAM and 20GB free disk space
+
+## 📥 Step 1: Clone and Setup the Project
+```Shell
+# Clone the repository
+git clone git@github.com:jonatanmendez29/e2e-ml-platform.git
+cd e2e-ml-platform
+
+# Create environment file
+cp .env.example .env
+```
+
+The .env has:
+```text
+# Database
+POSTGRES_DB=data_warehouse
+POSTGRES_USER=admin_ecomm
+POSTGRES_PASSWORD=admin_ecomm
+
+# Airflow
+AIRFLOW_UID=20000
+AIRFLOW_GID=20000
+
+# MLflow
+MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+
+# Streamlit
+STREAMLIT_SERVER_PORT=8501
+
+# FastAPI
+FASTAPI_PORT=8000
+
+# Jupyter
+JUPYTER_PORT=8888
+```
+## 🐳 Step 2: Start the Database Services
+```Shell
+# Start only PostgreSQL first to initialize databases
+docker compose up -d postgres
+
+# Wait for PostgreSQL to be ready (about 30 seconds)
+sleep 30
+
+# Verify database initialization
+docker compose exec postgres psql -U admin_ecomm -l
+```
+You should see three databases: `airflow_metadata`, `mlflow_tracking`, and `data_warehouse`.
+
+## 🔄 Step 3: Initialize Airflow Database
+```Shell
+# Initialize Airflow database
+docker compose run airflow-cli airflow config list
+docker compose up airflow-init
+```
+After initialization is complete, you should see a message like this:
+
+```Shell
+airflow-init_1       | Upgrades done
+airflow-init_1       | Admin user admin_ecomm created
+airflow-init_1       | 3.0.6
+start_airflow-init_1 exited with code 0
+```
+
+After that you need to stop all services or even delete services and volumes for a fresh start.
+```Shell
+docker compose down #just stop all services
+docker compose down --volumes --remove-orphans
+```
+## 🚀 Step 4: Start All Services
+
+```Shell
+# Start all services
+docker-compose up -d 
+
+# Check all services are running
+docker-compose ps
+```
+Wait for all services to start (2-3 minutes). You should see all services in "running" state.
+
+## ✅ Step 5: Verify Services are Accessible
+Check that each service is working by accessing them in your browser:
+
+1. Airflow - http://localhost:8080
+   - Username: admin 
+   - Password: admin 
+   - You should see the Airflow DAGs interface
+2. Streamlit Dashboard - http://localhost:8501
+   - Should show the e-commerce analytics dashboard
+3. MLFlow - http://localhost:5050
+   - Should show the MLFlow experiment tracking interface
+4. FastAPI Documentation - http://localhost:8000/docs
+   - Should show interactive API documentation
+5. Jupyter Notebook - http://localhost:8888
+   - Should show JupyterLab interface
+
+## 📊 Step 6: Generate and Load Sample Data
+```Shell
+# Run the data generation pipeline in Airflow
+# 1. Go to http://localhost:8080
+# 2. Login with admin_ecomm/admin_ecomm
+# 3. Find the 'ecommerce_data_pipeline' DAG
+# 4. Click the play button to trigger the DAG
+# 5. Wait for all tasks to complete (green status)
+
+# Alternatively, run data generation manually
+docker compose exec airflow-webserver python /opt/airflow/scripts/data_generator.py
+```
+## 🤖 Step 7: Train Machine Learning Models
+```Shell
+# Train the churn prediction model
+docker compose exec mlflow python churn_prediction/main.py
+
+# Train the recommendation model
+docker compose exec mlflow python recommendation/main.py
+```
+After training, refresh http://localhost:5050 to see your models in MLFlow.
+
+## 🧪 Step 8: Test the API Endpoints
+```Shell
+# Test churn prediction API
+curl -X POST "http://localhost:8000/predict/churn" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "users": [
+      {
+        "user_id": 1,
+        "age": 35,
+        "country": "United States",
+        "total_orders": 10,
+        "total_spent": 500.0,
+        "days_since_last_order": 15,
+        "avg_order_value": 50.0,
+        "customer_duration_days": 365,
+        "order_frequency": 0.0274,
+        "daily_spend": 1.37
+      }
+    ]
+  }'
+
+# Test health endpoint
+curl http://localhost:8000/health
+```
+
+## 🔍 Step 9: Run Causal Analysis
+1. Open http://localhost:8888
+2. Navigate to the causal-analysis/notebooks directory 
+3. Open and run the causal analysis notebook
+
+## 🛑 Step 10: Stopping the Services
+```Shell
+# Stop all services (preserve data)
+docker compose down
+
+# Stop and remove all data
+docker compose down -v
+```
+
+## 🔧 Troubleshooting Common Issues
+### Port Conflicts
+If ports are already in use, change them in your .env file:
+```Shell
+# Update these values in your .env
+AIRFLOW_PORT=8080
+STREAMLIT_PORT=8501
+MLFLOW_PORT=5050
+FASTAPI_PORT=8000
+JUPYTER_PORT=8888
+```
+
+### Database Connection Issues
+```Shell
+# Check if PostgreSQL is running
+docker-compose logs postgres
+
+# Reset databases if needed
+docker-compose down -v
+docker-compose up -d postgres
+sleep 30
+docker-compose up -d
+```
+
+### Out of Memory Errors
+```Shell
+# Increase Docker memory allocation
+# Docker Desktop → Settings → Resources → Memory (≥ 8GB)
+
+# Or limit services memory in docker-compose.yml
+services:
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+```
+### Service Health Checks
+```Shell
+# Check service logs
+docker compose logs airflow-webserver
+docker compose logs mlflow
+docker compose logs fastapi
+
+# Check individual service health
+docker compose exec postgres pg_isready
+curl http://localhost:8000/health
+```
+
+# 📝 Next Steps
+After successful setup:
+1. **Explore the Data**: Check the Streamlit dashboard at http://localhost:8501
+2. **Run Experiments**: Use MLFlow at http://localhost:5050 to track new experiments 
+3. **Test APIs**: Use the FastAPI docs at http://localhost:8000/docs
+4. **Modify Code**: The code is mounted in containers, so changes will reflect immediately 
+5. **Add New Features**: Extend the platform with new models or analyses
+
+# 🆘 Getting Help
+If you encounter issues:
+1. Check the service logs: docker compose logs <service-name>
+2. Verify all containers are running: docker-compose ps 
+3. Ensure databases are initialized: Check PostgreSQL logs 
+4. Check the troubleshooting section above
+
+The platform is now ready for development and experimentation! 🎉
