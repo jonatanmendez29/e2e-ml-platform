@@ -482,13 +482,13 @@ docker compose exec postgres pg_isready
 curl http://localhost:8000/health
 ```
 <div align="center" style="overflow-x: auto; white-space: nowrap;"> 
-    <img src="https://screenshots/Airflow.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;"> 
-    <img src="https://screenshots/Airflow _dag.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-    <img src="https://screenshots/Airflow_dag_exe.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-    <img src="https://screenshots/Airflow_dag_succ.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-    <img src="https://screenshots/Dashboard.jpeg" alt="Streamlit Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-    <img src="https://screenshots/Dashboard_2.jpeg" alt="Streamlit Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-    <img src="https://screenshots/MLflow.jpeg" alt="MLFlow Experiments" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    <img src="/screenshots/Airflow.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;"> 
+    <img src="/screenshots/Airflow _dag.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    <img src="/screenshots/Airflow_dag_exe.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    <img src="/screenshots/Airflow_dag_succ.jpeg" alt="Airflow Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    <img src="/screenshots/Dashboard.jpeg" alt="Streamlit Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    <img src="/screenshots/Dashboard_2.jpeg" alt="Streamlit Dashboard" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+    <img src="/screenshots/MLflow.jpeg" alt="MLFlow Experiments" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
 </div>
 
 # 📝 Next Steps
