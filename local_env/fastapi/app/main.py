@@ -30,9 +30,9 @@ def get_db_connection():
     return create_engine("postgresql://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse")
 
 # MLflow model loading
-def load_model(model_name, stage="Production"):
+def load_model(model_name, stage="production"):
     try:
-        model_uri = f"models:/{model_name}/{stage}"
+        model_uri = f"models:/{model_name}@{stage}"
         model = mlflow.pyfunc.load_model(model_uri)
         logger.info(f"Loaded model {model_name} from {model_uri}")
         return model
@@ -111,13 +111,13 @@ async def health_check():
 
     try:
         # Try to load models to check their status
-        load_model("churn_prediction_model", "Production")
+        load_model("churn_prediction_model", "production")
         model_status["churn_model"] = "available"
     except Exception as e:
         model_status["churn_model"] = f"error: {str(e)}"
 
     try:
-        load_model("product_recommendation_model", "Production")
+        load_model("product_recommendation_model", "production")
         model_status["recommendation_model"] = "available"
     except Exception as e:
         model_status["recommendation_model"] = f"error: {str(e)}"
@@ -134,7 +134,7 @@ async def predict_churn(request: ChurnPredictionRequest):
     """Predict churn probability for users"""
     try:
         # Load model
-        model = load_model("churn_prediction_model", "Production")
+        model = load_model("churn_prediction_model", "production")
 
         # Prepare features DataFrame
         user_data = [user.model_dump() for user in request.users]
@@ -167,7 +167,7 @@ async def recommend_products(request: RecommendationRequest):
     """Get product recommendations for a user"""
     try:
         # Load recommendation model
-        model = load_model("product_recommendation_model", "Production")
+        model = load_model("product_recommendation_model", "production")
 
         # Get database connection
         db_engine = get_db_connection()
