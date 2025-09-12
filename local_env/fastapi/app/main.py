@@ -23,7 +23,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-mlflow.set_tracking_uri("http://localhost:5050")
+mlflow.set_tracking_uri("http://mlflow:5050")
 
 # Update database connection
 def get_db_connection():
@@ -42,7 +42,7 @@ def load_model(model_name, stage="Production"):
 
 
 # Load models at startup
-@app.lifespan("startup")
+@app.on_event("startup")
 async def startup_event():
     # These will be loaded on first request to avoid startup failures if models aren't available
     logger.info("API startup completed")
