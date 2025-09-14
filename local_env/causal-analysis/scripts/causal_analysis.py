@@ -1,17 +1,17 @@
 import pandas as pd
 import numpy as np
 import logging
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
-import statsmodels.api as sm
 from statsmodels.formula.api import ols
 import matplotlib.pyplot as plt
 import seaborn as sns
 from dowhy import CausalModel
 import econml.metalearners as metalearners
 from econml.dml import DML
-from econml.dr import DRLearner
+from econml.sklearn_extensions.linear_model import StatsModelsLinearRegression
+
 
 # Set up logging and plotting
 logging.basicConfig(level=logging.INFO)
@@ -45,18 +45,18 @@ class MarketingCampaignAnalysis:
         covariates = ['age', 'total_past_purchases', 'total_past_spend',
                       'days_since_last_purchase', 'email_opens_30d', 'activity_score']
 
-        balance_df = pd.DataFrame()
+        covariates_list = []
         for covariate in covariates:
             treatment_mean = self.data[self.data['received_email'] == 1][covariate].mean()
             control_mean = self.data[self.data['received_email'] == 0][covariate].mean()
-            balance_df = balance_df.append({
+            covariates_list.append({
                 'covariate': covariate,
                 'treatment_mean': treatment_mean,
                 'control_mean': control_mean,
                 'difference': treatment_mean - control_mean,
                 'std_diff': (treatment_mean - control_mean) / self.data[covariate].std()
-            }, ignore_index=True)
-
+            })
+        balance_df = pd.DataFrame(covariates_list)
         print(balance_df)
 
         # Plot distribution of covariates
@@ -69,7 +69,7 @@ class MarketingCampaignAnalysis:
             axes[i].set_title(f'Distribution of {covariate}')
 
         plt.tight_layout()
-        plt.savefig('results/covariate_distributions.png')
+        plt.savefig('../results/covariate_distributions.png')
         plt.close()
 
         return balance_df
@@ -125,7 +125,7 @@ class MarketingCampaignAnalysis:
         sns.histplot(data=self.data, x='propensity_score', hue='received_email',
                      kde=True, alpha=0.6)
         plt.title('Propensity Score Distribution')
-        plt.savefig('results/propensity_score_distribution.png')
+        plt.savefig('../results/propensity_score_distribution.png')
         plt.close()
 
         # Perform matching (nearest neighbor)
@@ -272,17 +272,22 @@ class MarketingCampaignAnalysis:
         X_scaled = scaler.fit_transform(X)
 
         # S-Learner
-        s_learner = metalearners.SLearner()
+        s_learner = metalearners.SLearner(overall_model=RandomForestRegressor())
         s_learner.fit(y, T, X=X_scaled)
-        s_ate = s_learner.estimate_ate(X=X_scaled)[0][0]
+        s_ate = s_learner.ate(X=X_scaled)
 
         # T-Learner
-        t_learner = metalearners.TLearner()
+        t_learner = metalearners.TLearner(models=LinearRegression())
         t_learner.fit(y, T, X=X_scaled)
-        t_ate = t_learner.estimate_ate(X=X_scaled)[0][0]
+        t_ate = t_learner.ate(X=X_scaled)
 
         # Double Machine Learning
-        dml = DML(model_y=RandomForestClassifier(), model_t=RandomForestClassifier())
+        dml = DML(
+            model_y=RandomForestRegressor(),
+            model_t=RandomForestClassifier(),
+            model_final=StatsModelsLinearRegression(fit_intercept=False),
+            discrete_treatment=True
+        )
         dml.fit(y, T, X=X_scaled)
         dml_ate = dml.ate(X_scaled)
 
@@ -331,7 +336,7 @@ class MarketingCampaignAnalysis:
             ]
         })
 
-        results_df.to_csv('results/causal_analysis_results.csv', index=False)
+        results_df.to_csv('../results/causal_analysis_results.csv', index=False)
 
         # Plot results
         plt.figure(figsize=(12, 8))
@@ -343,7 +348,7 @@ class MarketingCampaignAnalysis:
         plt.xticks(rotation=45, ha='right')
         plt.legend()
         plt.tight_layout()
-        plt.savefig('results/method_comparison.png')
+        plt.savefig('../results/method_comparison.png')
         plt.close()
 
         logger.info("All analyses completed. Results saved to results/ directory.")
@@ -355,12 +360,12 @@ def main():
     """Main function to run the causal analysis"""
     # Generate data if it doesn't exist
     import os
-    if not os.path.exists('data/marketing_campaign_data.csv'):
+    if not os.path.exists('../data/marketing_campaign_data.csv'):
         from data_simulation import main as simulate_data
         simulate_data()
 
     # Run analysis
-    analysis = MarketingCampaignAnalysis('data/marketing_campaign_data.csv')
+    analysis = MarketingCampaignAnalysis('../data/marketing_campaign_data.csv')
     results = analysis.run_all_analyses()
 
     print("\n=== FINAL RESULTS ===")

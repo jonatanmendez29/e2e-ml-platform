@@ -7,13 +7,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def simulate_marketing_campaign_data(n_users=5000, campaign_date='2023-06-01'):
+def simulate_marketing_campaign_data(n_users=5000, campaign_date='2025-06-01'):
     """
     Simulate data for a marketing email campaign evaluation
     Includes confounders, treatment assignment, and outcomes
     """
     np.random.seed(42)
-    fake = Faker()
+    fake = Faker(['es_MX', 'en_US', 'en_GB'])
 
     # Create user base
     users = []
@@ -22,7 +22,7 @@ def simulate_marketing_campaign_data(n_users=5000, campaign_date='2023-06-01'):
         users.append({
             "user_id": i + 1,
             "age": np.random.randint(18, 70),
-            "country": fake.country(),
+            "country": fake.current_country(),
             "signup_date": signup_date,
             "total_past_purchases": np.random.poisson(5),
             "total_past_spend": np.random.gamma(100, 2),
@@ -71,7 +71,7 @@ def simulate_marketing_campaign_data(n_users=5000, campaign_date='2023-06-01'):
 def main():
     """Generate and save simulated data"""
     data = simulate_marketing_campaign_data()
-    data.to_csv('data/marketing_campaign_data.csv', index=False)
+    data.to_csv('../data/marketing_campaign_data.csv', index=False)
     logger.info("Data saved to data/marketing_campaign_data.csv")
 
 
