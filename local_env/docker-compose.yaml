@@ -357,6 +357,22 @@ services:
     networks:
       - ecomm-network
 
+  # Causal Analysis (Jupyter)
+  jupyter:
+    build: ./causal-analysis
+    ports:
+      - "8888:8888"
+    environment:
+      - DB_URL=postgresql+psycopg2://admin_ecomm:admin_ecomm@postgres:5432/data_warehouse
+      - JUPYTER_TOKEN= # Set a fixed token
+    volumes:
+      - ./causal-analysis/notebooks:/home/jovyan/work/notebooks
+      - ./causal-analysis/scripts:/home/jovyan/work/scripts
+    depends_on:
+      - postgres
+    networks:
+      - ecomm-network
+
 volumes:
   postgres-db-volume:
   mlflow_data:
