@@ -491,6 +491,233 @@ curl http://localhost:8000/health
     <img src="/screenshots/MLflow.jpeg" alt="MLFlow Experiments" width="300" style="display: inline-block; margin: 5px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
 </div>
 
+# AWS Environment Setup Guide
+## 🌐 Overview
+This guide will walk you through deploying your E-Commerce ML Platform to AWS with proper security measures and production-ready architecture. We'll use Terraform for Infrastructure as Code and follow AWS best practices.
+
+## 📋 Prerequisites
+Before you begin, ensure you have:
+1. **AWS Account** with appropriate permissions 
+2. **AWS CLI** installed and configured 
+3. **Terraform** (v1.0+) installed 
+4. **Docker** installed for image building 
+5. **Git** for version control
+
+## 🛡️ Security First: Pre-Deployment Checklist
+**1. Vulnerability Scanning**
+```Shell
+# Scan Python dependencies
+pip install safety
+safety check -r requirements.txt
+
+# Scan code for security issues
+pip install bandit
+bandit -r .
+
+# Scan Docker images
+docker scan your-image-name
+```
+**2. Update Vulnerable Dependencies**
+
+Ensure your `requirements.txt` includes these minimum secure versions:
+```Shell
+cryptography>=41.0.0
+urllib3>=2.0.0
+requests>=2.31.0
+PyYAML>=6.0.0
+Jinja2>=3.0.0
+```
+## 🚀 Step-by-Step Deployment
+**Step 1: Clone and Prepare Your Repository**
+```Shell
+git clone git@github.com:jonatanmendez29/e2e-ml-platform.git
+cd e2e-ml-platform/local_env
+
+# Create terraform directory structure
+mkdir -p terraform/{modules,environments/prod}
+```
+**Step 2: Set Up AWS Credentials**
+```Shell
+# Configure AWS CLI
+aws configure
+
+# Set environment variables
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export AWS_DEFAULT_REGION="us-east-1"
+```
+**Step 3: Build and Push Docker Images**
+```Shell
+# Build your images
+docker build -t your-account-id.dkr.ecr.us-east-1.amazonaws.com/streamlit:latest ./streamlit
+docker build -t your-account-id.dkr.ecr.us-east-1.amazonaws.com/mlflow:latest ./mlflow
+docker build -t your-account-id.dkr.ecr.us-east-1.amazonaws.com/fastapi:latest ./fastapi
+
+# Login to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin your-account-id.dkr.ecr.us-east-1.amazonaws.com
+
+# Push images to ECR
+docker push your-account-id.dkr.ecr.us-east-1.amazonaws.com/streamlit:latest
+docker push your-account-id.dkr.ecr.us-east-1.amazonaws.com/mlflow:latest
+docker push your-account-id.dkr.ecr.us-east-1.amazonaws.com/fastapi:latest
+```
+**Step 4: Initialize Terraform**
+```Shell
+cd terraform/environments/prod
+
+# Create terraform.tfvars file
+cat > terraform.tfvars << EOF
+region = "us-east-1"
+environment = "prod"
+db_username = "admin_ecomm"
+db_password = "your_secure_password_here"
+vpc_cidr = "10.0.0.0/16"
+EOF
+
+# Initialize Terraform
+terraform init
+```
+**Step 5: Plan and Apply Infrastructure**
+```Shell
+# Review the deployment plan
+terraform plan
+
+# Deploy the infrastructure
+terraform apply
+```
+
+This will create:
+- VPC with public and private subnets 
+- RDS PostgreSQL instance with separate databases 
+- S3 buckets for MLFlow artifacts and Airflow DAGs 
+- MWAA (Managed Workflows for Apache Airflow) environment 
+- ECS Fargate cluster with services 
+- Security groups and IAM roles
+
+**Step 6: Configure MWAA (Managed Airflow)**
+1. Access the MWAA environment through AWS Console 
+2. Set up connections to your RDS database 
+3. Upload your DAGs to the S3 bucket created by Terraform 
+4. Configure variables and connections in the Airflow UI
+
+**Step 7: Initialize Databases**
+```Shell
+# Get RDS endpoint from Terraform outputs
+RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+
+# Connect to PostgreSQL and initialize schemas
+psql -h $RDS_ENDPOINT -U admin_ecomm -d data_warehouse -f ../init/init.sql
+```
+**Step 8: Verify Deployment**
+
+Check that all services are running:
+```Shell
+# Check ECS services
+aws ecs list-services --cluster ecomm-ml-cluster
+
+# Check RDS status
+aws rds describe-db-instances --db-instance-identifier ecomm-ml-db
+
+# Check S3 buckets
+aws s3 ls | grep ecomm
+```
+## 🔧 Post-Deployment Configuration
+
+**1. Set Up Monitoring and Alerts**
+```Shell
+# Create CloudWatch alarms for critical metrics
+aws cloudwatch put-metric-alarm \
+    --alarm-name "HighCPUUtilization" \
+    --alarm-description "Alarm when CPU exceeds 80 percent" \
+    --metric-name "CPUUtilization" \
+    --namespace "AWS/ECS" \
+    --statistic "Average" \
+    --period 300 \
+    --threshold 80 \
+    --comparison-operator "GreaterThanThreshold" \
+    --evaluation-periods 2 \
+    --alarm-actions "<your-sns-topic-arn>"
+```
+**2. Configure DNS and SSL (Optional)**
+```Shell
+# If using Route53 and ACM for custom domains
+aws route53 create-hosted-zone --name "your-domain.com" --caller-reference "$(date +%s)"
+```
+**3. Set Up Backup and Recovery**
+```Shell
+# Enable RDS automated backups
+aws rds modify-db-instance \
+    --db-instance-identifier ecomm-ml-db \
+    --backup-retention-period 7 \
+    --preferred-backup-window "02:00-03:00" \
+    --apply-immediately
+```
+## 📊 Monitoring and Maintenance
+**1. Regular Security Scanning**
+
+Set up a schedule for regular security scans:
+```Shell
+# Weekly security scan script
+#!/bin/bash
+cd /path/to/your/project
+safety check -r requirements.txt
+bandit -r .
+trivy image your-account-id.dkr.ecr.us-east-1.amazonaws.com/streamlit:latest
+# Add notification logic
+```
+**2. Cost Monitoring**
+
+Set up AWS Budgets to monitor costs:
+```Shell
+aws budgets create-budget \
+    --account-id your-account-id \
+    --budget file://budget.json \
+    --notifications-with-subscribers file://notifications.json
+```
+**3. Logging and Audit**
+
+Enable AWS CloudTrail for auditing:
+```Shell
+aws cloudtrail create-trail \
+    --name ecomm-ml-audit \
+    --s3-bucket-name ecomm-cloudtrail-logs \
+    --is-multi-region-trail
+```
+
+## 🚨 Important Security Considerations
+1. **Secrets Management**: Never commit secrets to version control. Use AWS Secrets Manager. 
+2. **Least Privilege**: IAM roles should have only necessary permissions. 
+3. **Network Security**: Use security groups and NACLs to restrict traffic. 
+4. **Encryption**: Enable encryption at rest and in transit for all services. 
+5. **Regular Updates**: Keep dependencies and base images updated.
+
+## 🧹 Cleanup Instructions
+To avoid ongoing charges when not using the environment:
+```Shell
+# Destroy Terraform infrastructure
+terraform destroy
+
+# Delete ECR images
+aws ecr batch-delete-image \
+    --repository-name streamlit \
+    --image-ids imageTag=latest
+
+# Delete S3 buckets (empty first)
+aws s3 rm s3://ecomm-mlflow-artifacts-prod --recursive
+aws s3 rb s3://ecomm-mlflow-artifacts-prod
+```
+## 📝 Ongoing Maintenance
+1. **Monthly**: Review security groups and IAM policies 
+2. **Weekly**: Update dependencies and scan for vulnerabilities 
+3. **Daily**: Check CloudWatch alarms and service health 
+4. **On-demand**: Backup database before major changes
+
+## 🆘 Troubleshooting Common Issues
+1. **Database Connection Issues**: Check security groups and RDS status 
+2. **Container Startup Failures**: Check ECS task definitions and CloudWatch logs 
+3. **Airflow DAG Failures**: Check MWAA logs and S3 bucket permissions 
+4. **API Timeouts**: Check load balancer configuration and service health
+
 # 📝 Next Steps
 After successful setup:
 1. **Explore the Data**: Check the Streamlit dashboard at http://localhost:8501
