@@ -1,4 +1,4 @@
-# End-to-End E-Commerce Analytics & ML Platfrom
+# End-to-End E-Commerce Analytics & ML Platform
 # 🎯 Project Overview
 Welcome to my comprehensive **E-Commerce Machine Learning Platform** - a full-stack data science project that demonstrates modern data engineering, machine learning, and cloud deployment practices. 
 This platform simulates a real-world e-commerce ecosystem, transforming raw data into actionable business intelligence through a complete ML pipeline.
